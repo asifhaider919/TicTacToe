@@ -1,11 +1,18 @@
 import streamlit as st
 
-# Initialize the game board
+# Initialize the game board and players' names
 if 'board' not in st.session_state:
     st.session_state.board = [' ' for _ in range(9)]
     st.session_state.current_player = 'X'
     st.session_state.winner = None
     st.session_state.moves = 0
+    st.session_state.player_X = ''
+    st.session_state.player_O = ''
+
+# Sidebar input for players' names
+st.sidebar.title("Player Information")
+st.session_state.player_X = st.sidebar.text_input("Player 1 (X)", st.session_state.player_X)
+st.session_state.player_O = st.sidebar.text_input("Player 2 (O)", st.session_state.player_O)
 
 # Define the winning combinations
 winning_combinations = [
@@ -28,9 +35,10 @@ def make_move(index):
         st.session_state.board[index] = st.session_state.current_player
         st.session_state.moves += 1
         if check_winner():
-            st.success(f"Player {st.session_state.current_player} wins!")
+            st.session_state.winner = st.session_state.current_player
+            st.balloons()  # Trigger the balloons animation
         elif st.session_state.moves == 9:
-            st.warning("It's a tie!")
+            st.session_state.winner = 'Tie'
         else:
             st.session_state.current_player = 'O' if st.session_state.current_player == 'X' else 'X'
 
@@ -43,6 +51,15 @@ def reset_game():
 
 # Title of the app
 st.title("Tic Tac Toe")
+
+# Display whose turn it is
+if st.session_state.winner is None:
+    st.subheader(f"It's {st.session_state.player_X if st.session_state.current_player == 'X' else st.session_state.player_O}'s ({st.session_state.current_player}) turn")
+elif st.session_state.winner == 'Tie':
+    st.subheader("It's a tie!")
+else:
+    winner_name = st.session_state.player_X if st.session_state.winner == 'X' else st.session_state.player_O
+    st.success(f"Player {winner_name} ({st.session_state.winner}) wins!")
 
 # Styling
 button_style = """
