@@ -32,7 +32,24 @@ def run_quiz():
             user_answer = int(user_answer)
             if user_answer == correct_answer:
                 st.success("Correct! 🎉")
-                st.balloons()
+                st.markdown("""
+                <style>
+                .balloon-animation {
+                    position: absolute;
+                    animation: balloon 0.5s ease-out;
+                    transform: translate(-50%, 0);
+                    z-index: 1;
+                }
+                @keyframes balloon {
+                    0% { transform: translateY(0); opacity: 1; }
+                    50% { opacity: 1; }
+                    100% { transform: translateY(-150px); opacity: 0; }
+                }
+                </style>
+                <div class="balloon-animation">
+                <img src="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/271/balloon_1f388.png" width="50">
+                </div>
+                """, unsafe_allow_html=True)
             else:
                 st.error("Wrong answer! 😔 Try again.")
                 st.warning("The correct answer was: " + str(correct_answer))
