@@ -7,7 +7,7 @@ import math
 # Function to calculate fan shape points
 def calculate_fan_points(lat, lon, azimuth, beamwidth_deg, sector_size_m):
     fan_points = []
-    fan_radius = sector_size_m/10000  # Sector size directly represents the radius in meters
+    fan_radius = sector_size_m/50000  # Sector size directly represents the radius in meters
 
     # Convert azimuth to radians
     azimuth_rad = math.radians(azimuth)
@@ -15,7 +15,7 @@ def calculate_fan_points(lat, lon, azimuth, beamwidth_deg, sector_size_m):
     # Calculate fan points based on beamwidth and azimuth
     fan_points.append((lat, lon))  # Center of the fan
     
-    num_points = 30  # Number of points to approximate the fan shape
+    num_points = 5  # Number of points to approximate the fan shape
     angle_step = math.radians(beamwidth_deg / 2.0 / num_points)  # Half of the beamwidth
     
     # Calculate fan points in one direction
