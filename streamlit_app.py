@@ -1,109 +1,44 @@
 import streamlit as st
 import random
 
-# List of motivational quotes
-quotes = [
-    "Believe you can and you're halfway there.",
-    "Your limitation—it's only your imagination.",
-    "Push yourself, because no one else is going to do it for you.",
-    "Great things never come from comfort zones.",
-    "Dream it. Wish it. Do it.",
-    "Success doesn’t just find you. You have to go out and get it.",
-    "The harder you work for something, the greater you’ll feel when you achieve it.",
-    "Don’t stop when you’re tired. Stop when you’re done.",
-    "Wake up with determination. Go to bed with satisfaction.",
-    "Do something today that your future self will thank you for."
-]
+# Function to generate random math questions
+def generate_question():
+    num1 = random.randint(1, 20)
+    num2 = random.randint(1, 20)
+    operator = random.choice(['+', '*', '/'])
+    if operator == '/':
+        # Ensure division result is an integer
+        num1 = num2 * random.randint(1, 10)  # Make num1 a multiple of num2
+    question = f"What is {num1} {operator} {num2}?"
+    if operator == '/':
+        answer = num1 // num2  # Integer division for division operation
+    else:
+        answer = eval(f"{num1} {operator} {num2}")  # Evaluate the expression
+    return question, answer
 
-# Select a random quote
-quote = random.choice(quotes)
+# Function to run the quiz
+def run_quiz():
+    st.title("Math Quiz for Year 8")
+    st.markdown("Answer 10 questions to test your math skills!")
 
-# Initialize the game board and players' names
-if 'board' not in st.session_state:
-    st.session_state.board = [' ' for _ in range(9)]
-    st.session_state.current_player = 'X'
-    st.session_state.winner = None
-    st.session_state.moves = 0
+    score = 0
+    for i in range(10):
+        question, correct_answer = generate_question()
+        user_answer = st.text_input(f"Question {i + 1}: {question}")
+        if user_answer.strip().isdigit():  # Check if the input is a number
+            user_answer = int(user_answer)
+            if user_answer == correct_answer:
+                score += 1
 
-if 'player_X' not in st.session_state:
-    st.session_state.player_X = ''
+    st.success(f"You scored {score}/10!")
 
-if 'player_O' not in st.session_state:
-    st.session_state.player_O = ''
+# Main function to run the app
+def main():
+    st.sidebar.title("Math Quiz Options")
+    start_quiz = st.sidebar.button("Start Quiz")
 
-# Sidebar input for players' names
-st.sidebar.title("Player Information")
-st.session_state.player_X = st.sidebar.text_input("Player 1 (X)", st.session_state.player_X)
-st.session_state.player_O = st.sidebar.text_input("Player 2 (O)", st.session_state.player_O)
+    if start_quiz:
+        run_quiz()
 
-# Define the winning combinations
-winning_combinations = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8],  # Horizontal
-    [0, 3, 6], [1, 4, 7], [2, 5, 8],  # Vertical
-    [0, 4, 8], [2, 4, 6]  # Diagonal
-]
-
-# Function to check for a winner
-def check_winner():
-    for combo in winning_combinations:
-        if st.session_state.board[combo[0]] == st.session_state.board[combo[1]] == st.session_state.board[combo[2]] != ' ':
-            st.session_state.winner = st.session_state.current_player
-            return True
-    return False
-
-# Function to handle a move
-def make_move(index):
-    if st.session_state.board[index] == ' ' and st.session_state.winner is None:
-        st.session_state.board[index] = st.session_state.current_player
-        st.session_state.moves += 1
-        if check_winner():
-            st.session_state.winner = st.session_state.current_player
-            st.balloons()  # Trigger the balloons animation
-        elif st.session_state.moves == 9:
-            st.session_state.winner = 'Tie'
-        else:
-            st.session_state.current_player = 'O' if st.session_state.current_player == 'X' else 'X'
-
-# Function to reset the game
-def reset_game():
-    st.session_state.board = [' ' for _ in range(9)]
-    st.session_state.current_player = 'X'
-    st.session_state.winner = None
-    st.session_state.moves = 0
-
-# Title of the app
-st.title("Tic Tac Toe")
-
-# Display a motivational quote
-st.markdown(f"> *{quote}*")
-
-# Display whose turn it is
-if st.session_state.winner is None:
-    st.subheader(f"It's {st.session_state.player_X if st.session_state.current_player == 'X' else st.session_state.player_O}'s ({st.session_state.current_player}) turn")
-elif st.session_state.winner == 'Tie':
-    st.subheader("It's a tie!")
-else:
-    winner_name = st.session_state.player_X if st.session_state.winner == 'X' else st.session_state.player_O
-    st.success(f"Player {winner_name} ({st.session_state.winner}) wins!")
-
-# Styling
-button_style = """
-    <style>
-    .stButton > button {
-        height: 100px;
-        width: 100px;
-        font-size: 40px;
-    }
-    </style>
-"""
-st.markdown(button_style, unsafe_allow_html=True)
-
-# Display the game board
-cols = st.columns(3)
-for i in range(3):
-    for j in range(3):
-        index = i * 3 + j
-        cols[j].button(st.session_state.board[index], key=index, on_click=make_move, args=(index,))
-
-# Reset button
-st.button("Reset", on_click=reset_game)
+if __name__ == "__main__":
+    main()
