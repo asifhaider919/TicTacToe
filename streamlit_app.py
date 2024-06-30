@@ -1,109 +1,58 @@
-import streamlit as st
-import random
+import pandas as pd
+import datetime as dt
 
-# List of motivational quotes
-quotes = [
-    "Believe you can and you're halfway there.",
-    "Your limitation—it's only your imagination.",
-    "Push yourself, because no one else is going to do it for you.",
-    "Great things never come from comfort zones.",
-    "Dream it. Wish it. Do it.",
-    "Success doesn’t just find you. You have to go out and get it.",
-    "The harder you work for something, the greater you’ll feel when you achieve it.",
-    "Don’t stop when you’re tired. Stop when you’re done.",
-    "Wake up with determination. Go to bed with satisfaction.",
-    "Do something today that your future self will thank you for."
-]
+# Load your CSV data (adjust the path and delimiter if needed)
+csv_file = 'path_to_your_csv_file.csv'
+delimiter = ';'
+df = pd.read_csv(csv_file, delimiter=delimiter)
 
-# Select a random quote
-quote = random.choice(quotes)
+# Assume Period start time is in 'PERIOD_START_TIME' column
+df['PERIOD_START_TIME'] = pd.to_datetime(df['PERIOD_START_TIME'])
 
-# Initialize the game board and players' names
-if 'board' not in st.session_state:
-    st.session_state.board = [' ' for _ in range(9)]
-    st.session_state.current_player = 'X'
-    st.session_state.winner = None
-    st.session_state.moves = 0
+# Filter and select metrics dynamically (adjust as per your UI logic)
+selected_metrics = ['Metric_A', 'Metric_B']  # Example: dynamically selected metrics
 
-if 'player_X' not in st.session_state:
-    st.session_state.player_X = ''
+# Calculate the delta for each selected metric
+for metric in selected_metrics:
+    # Calculate delta between last 'Period start time' and last week's same day 'Period start time'
+    last_period_time = df['PERIOD_START_TIME'].max()
+    last_week_period_time = last_period_time - dt.timedelta(days=7)
+    
+    # Filter data for the last 'Period start time' and last week's same day
+    last_period_data = df[df['PERIOD_START_TIME'] == last_period_time]
+    last_week_data = df[df['PERIOD_START_TIME'] == last_week_period_time]
+    
+    # Calculate delta for the selected metric
+    delta_column = f'{metric}_delta'
+    df[delta_column] = last_period_data[metric] - last_week_data[metric]
 
-if 'player_O' not in st.session_state:
-    st.session_state.player_O = ''
+# Define your dynamically set threshold
+threshold = 10  # Example: dynamically set threshold
 
-# Sidebar input for players' names
-st.sidebar.title("Player Information")
-st.session_state.player_X = st.sidebar.text_input("Player 1 (X)", st.session_state.player_X)
-st.session_state.player_O = st.sidebar.text_input("Player 2 (O)", st.session_state.player_O)
+# Filter items where delta of selected metrics is above threshold
+filtered_items = df[(df[selected_metrics].max(axis=1) > threshold)]
 
-# Define the winning combinations
-winning_combinations = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8],  # Horizontal
-    [0, 3, 6], [1, 4, 7], [2, 5, 8],  # Vertical
-    [0, 4, 8], [2, 4, 6]  # Diagonal
-]
+# Display on map (example using Folium)
+import folium
 
-# Function to check for a winner
-def check_winner():
-    for combo in winning_combinations:
-        if st.session_state.board[combo[0]] == st.session_state.board[combo[1]] == st.session_state.board[combo[2]] != ' ':
-            st.session_state.winner = st.session_state.current_player
-            return True
-    return False
+# Create a base map centered around a location (adjust center coordinates as needed)
+m = folium.Map(location=[df['Lat'].mean(), df['Lon'].mean()], zoom_start=7)
 
-# Function to handle a move
-def make_move(index):
-    if st.session_state.board[index] == ' ' and st.session_state.winner is None:
-        st.session_state.board[index] = st.session_state.current_player
-        st.session_state.moves += 1
-        if check_winner():
-            st.session_state.winner = st.session_state.current_player
-            st.balloons()  # Trigger the balloons animation
-        elif st.session_state.moves == 9:
-            st.session_state.winner = 'Tie'
-        else:
-            st.session_state.current_player = 'O' if st.session_state.current_player == 'X' else 'X'
+# Iterate over filtered items to plot on the map
+for idx, row in filtered_items.iterrows():
+    popup_message = f"<b>Item:</b> {row['Item']}<br>" \
+                    f"<b>Lat:</b> {row['Lat']}<br>" \
+                    f"<b>Lon:</b> {row['Lon']}<br>" \
+                    f"<b>Metrics:</b><br>"
+                    
+    for metric in selected_metrics:
+        popup_message += f"{metric}: {row[metric]}<br>"
+        
+    folium.Marker(
+        location=[row['Lat'], row['Lon']],
+        popup=folium.Popup(popup_message, max_width=400),
+        icon=folium.Icon(color='blue', icon='info-sign')
+    ).add_to(m)
 
-# Function to reset the game
-def reset_game():
-    st.session_state.board = [' ' for _ in range(9)]
-    st.session_state.current_player = 'X'
-    st.session_state.winner = None
-    st.session_state.moves = 0
-
-# Title of the app
-st.title("Tic Tac Toe")
-
-# Display a motivational quote
-st.markdown(f"> *{quote}*")
-
-# Display whose turn it is
-if st.session_state.winner is None:
-    st.subheader(f"It's {st.session_state.player_X if st.session_state.current_player == 'X' else st.session_state.player_O}'s ({st.session_state.current_player}) turn")
-elif st.session_state.winner == 'Tie':
-    st.subheader("It's a tie!")
-else:
-    winner_name = st.session_state.player_X if st.session_state.winner == 'X' else st.session_state.player_O
-    st.success(f"Player {winner_name} ({st.session_state.winner}) wins!")
-
-# Styling
-button_style = """
-    <style>
-    .stButton > button {
-        height: 100px;
-        width: 100px;
-        font-size: 40px;
-    }
-    </style>
-"""
-st.markdown(button_style, unsafe_allow_html=True)
-
-# Display the game board
-cols = st.columns(3)
-for i in range(3):
-    for j in range(3):
-        index = i * 3 + j
-        cols[j].button(st.session_state.board[index], key=index, on_click=make_move, args=(index,))
-
-# Reset button
-st.button("Reset", on_click=reset_game)
+# Display the map
+folium_static(m)
