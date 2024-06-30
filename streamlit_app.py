@@ -44,6 +44,18 @@ def reset_game():
 # Title of the app
 st.title("Tic Tac Toe")
 
+# Styling
+button_style = """
+    <style>
+    .stButton > button {
+        height: 100px;
+        width: 100px;
+        font-size: 40px;
+    }
+    </style>
+"""
+st.markdown(button_style, unsafe_allow_html=True)
+
 # Display the game board
 cols = st.columns(3)
 for i in range(3):
