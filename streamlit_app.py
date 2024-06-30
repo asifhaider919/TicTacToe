@@ -5,11 +5,14 @@ from streamlit_folium import folium_static
 import math
 
 # Function to calculate fan shape points
-def calculate_fan_points(lat, lon, beamwidth, sector_size):
+def calculate_fan_points(lat, lon, azimuth, beamwidth, sector_size):
     fan_points = []
-    fan_radius = sector_size / 2.0  # Radius of the fan in meters
+    fan_radius = sector_size  # Sector size directly represents the radius in meters
 
-    # Calculate fan points based on beamwidth
+    # Convert azimuth to radians
+    azimuth_rad = math.radians(azimuth)
+
+    # Calculate fan points based on beamwidth and azimuth
     fan_points.append((lat, lon))  # Center of the fan
     
     num_points = 30  # Number of points to approximate the fan shape
@@ -20,7 +23,10 @@ def calculate_fan_points(lat, lon, beamwidth, sector_size):
         angle = angle_step * i
         x = lat + fan_radius * math.cos(angle)
         y = lon + fan_radius * math.sin(angle)
-        fan_points.append((x, y))
+        # Rotate the fan points based on azimuth
+        rotated_x = x * math.cos(azimuth_rad) - y * math.sin(azimuth_rad)
+        rotated_y = x * math.sin(azimuth_rad) + y * math.cos(azimuth_rad)
+        fan_points.append((lat + rotated_x, lon + rotated_y))
     
     # Mirror points to the other side
     mirrored_points = [(lat, lon)] + [(2 * lat - x, 2 * lon - y) for x, y in reversed(fan_points)]
@@ -35,7 +41,7 @@ def plot_cells_on_map(df):
     # Iterate through each row in the DataFrame
     for index, row in df.iterrows():
         # Calculate fan shape points
-        fan_points = calculate_fan_points(row['LATITUDE'], row['LONGITUDE'], row['BEAMWIDTH'], row['SECTOR_SIZE'])
+        fan_points = calculate_fan_points(row['LATITUDE'], row['LONGITUDE'], row['AZIMUTH'], row['BEAMWIDTH'], row['SECTOR_SIZE'])
         
         # Create a polygon from fan points
         polygon = folium.Polygon(locations=fan_points, color='blue', fill=True, fill_color='blue', fill_opacity=0.4)
