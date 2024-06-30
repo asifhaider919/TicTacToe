@@ -1,50 +1,36 @@
 import streamlit as st
-import random
 
-# Function to generate a random math question
-def generate_question():
-    num1 = random.randint(1, 20)
-    num2 = random.randint(1, 20)
-    operator = random.choice(['+', '*', '/'])
-    if operator == '/':
-        # Ensure division result is an integer
-        num1 = num2 * random.randint(1, 10)  # Make num1 a multiple of num2
-    question = f"What is {num1} {operator} {num2}?"
-    if operator == '/':
-        answer = num1 // num2  # Integer division for division operation
-    else:
-        answer = eval(f"{num1} {operator} {num2}")  # Evaluate the expression
-    return question, answer
-
-# Function to run the quiz
-def run_quiz():
-    st.title("Math Quiz for Year 8")
-    st.markdown("Answer each question to test your math skills!")
-
-    if 'question_index' not in st.session_state:
-        st.session_state.question_index = 0
-
-    question, correct_answer = generate_question()
-    user_answer = st.text_input(question, key=f'user_answer_{st.session_state.question_index}')
-
-    if st.button("Submit Answer"):
-        if user_answer.strip().isdigit():
-            user_answer = int(user_answer)
-            if user_answer == correct_answer:
-                st.success("Correct! 🎉")
-                st.balloons()
-                st.session_state.question_index += 1  # Increment question index only on correct answer
-
-            else:
-                st.error("Wrong answer! 😔 Try again.")
-                st.warning("The correct answer was: " + str(correct_answer))
-
-    if st.session_state.question_index > 0:
-        st.button("Next Question", on_click=run_quiz)
+# Function to convert frequency to ARFCN
+def freq_to_arfcn(frequency, network_type):
+    if network_type == '2G':
+        if 935 <= frequency <= 960:
+            return int((frequency - 935) / 0.2) + 128
+        elif 1805 <= frequency <= 1880:
+            return int((frequency - 1805) / 0.2) + 512
+    elif network_type == '3G':
+        if 2110 <= frequency <= 2170:
+            return int((frequency - 2110) / 0.2) + 10562
+    elif network_type == '4G':
+        if 2110 <= frequency <= 2200:
+            return int((frequency - 2110) / 0.1)
+    return None
 
 # Main function to run the app
 def main():
-    run_quiz()
+    st.title("Frequency to ARFCN Converter")
+
+    # Sidebar inputs
+    st.sidebar.header("Input Parameters")
+    frequency = st.sidebar.number_input("Frequency (MHz)", min_value=0.0, max_value=6000.0, value=900.0, step=0.1)
+    network_type = st.sidebar.selectbox("Network Type", options=['2G', '3G', '4G'])
+
+    # Conversion and result display
+    if st.sidebar.button("Convert"):
+        arfcn = freq_to_arfcn(frequency, network_type)
+        if arfcn is not None:
+            st.success(f"The ARFCN for {frequency} MHz in {network_type} is: {arfcn}")
+        else:
+            st.error("Invalid frequency or network type selected.")
 
 if __name__ == "__main__":
     main()
