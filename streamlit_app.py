@@ -52,21 +52,25 @@ def plot_cells_on_map(df):
 def main():
     st.title("Telecom Tower Cell Visualization")
     st.markdown("Visualizing telecom tower cells as fan-shaped polygons on a map.")
-
-    # File upload and parsing
-    st.sidebar.header("Upload Telecom Tower Data")
-    uploaded_file = st.sidebar.file_uploader("Upload XLSX file", type=["xlsx"])
+    
+    # File upload
+    st.sidebar.header("Upload Excel File")
+    uploaded_file = st.sidebar.file_uploader("Choose an Excel file", type=["xlsx"])
 
     if uploaded_file is not None:
+        # Read data from uploaded file
         try:
-            # Read Excel file
-            data = pd.read_excel(uploaded_file)
-
+            df = pd.read_excel(uploaded_file)
+            
             # Display the cells on the map
-            plot_cells_on_map(data)
-
+            plot_cells_on_map(df)
+            
         except Exception as e:
             st.sidebar.error(f"Error: {e}")
+    
+    # If no file uploaded, show instructions
+    if uploaded_file is None:
+        st.sidebar.info('Upload an Excel file to start')
 
 if __name__ == "__main__":
     main()
