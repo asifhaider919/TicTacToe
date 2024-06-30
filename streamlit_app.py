@@ -22,7 +22,7 @@ def run_quiz():
     st.markdown("Answer each question to test your math skills!")
 
     question, correct_answer = generate_question()
-    user_answer = st.text_input("Question:", key='user_answer')
+    user_answer = st.text_input(question, key='user_answer')
 
     if st.button("Submit Answer"):
         if user_answer.strip().isdigit():
