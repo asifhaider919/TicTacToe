@@ -21,8 +21,11 @@ def run_quiz():
     st.title("Math Quiz for Year 8")
     st.markdown("Answer each question to test your math skills!")
 
+    if 'question_index' not in st.session_state:
+        st.session_state.question_index = 0
+
     question, correct_answer = generate_question()
-    user_answer = st.text_input(question, key='user_answer')
+    user_answer = st.text_input(question, key=f'user_answer_{st.session_state.question_index}')
 
     if st.button("Submit Answer"):
         if user_answer.strip().isdigit():
@@ -34,7 +37,10 @@ def run_quiz():
                 st.error("Wrong answer! 😔 Try again.")
                 st.warning("The correct answer was: " + str(correct_answer))
 
-        st.button("Next Question", on_click=run_quiz, key='next_button')
+        st.session_state.question_index += 1
+
+    if st.session_state.question_index > 0:
+        st.button("Next Question", on_click=run_quiz)
 
 # Main function to run the app
 def main():
