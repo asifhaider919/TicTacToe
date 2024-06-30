@@ -1,4 +1,22 @@
 import streamlit as st
+import random
+
+# List of motivational quotes
+quotes = [
+    "Believe you can and you're halfway there.",
+    "Your limitation—it's only your imagination.",
+    "Push yourself, because no one else is going to do it for you.",
+    "Great things never come from comfort zones.",
+    "Dream it. Wish it. Do it.",
+    "Success doesn’t just find you. You have to go out and get it.",
+    "The harder you work for something, the greater you’ll feel when you achieve it.",
+    "Don’t stop when you’re tired. Stop when you’re done.",
+    "Wake up with determination. Go to bed with satisfaction.",
+    "Do something today that your future self will thank you for."
+]
+
+# Select a random quote
+quote = random.choice(quotes)
 
 # Initialize the game board and players' names
 if 'board' not in st.session_state:
@@ -55,6 +73,9 @@ def reset_game():
 
 # Title of the app
 st.title("Tic Tac Toe")
+
+# Display a motivational quote
+st.markdown(f"> *{quote}*")
 
 # Display whose turn it is
 if st.session_state.winner is None:
