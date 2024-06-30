@@ -6,7 +6,11 @@ if 'board' not in st.session_state:
     st.session_state.current_player = 'X'
     st.session_state.winner = None
     st.session_state.moves = 0
+
+if 'player_X' not in st.session_state:
     st.session_state.player_X = ''
+
+if 'player_O' not in st.session_state:
     st.session_state.player_O = ''
 
 # Sidebar input for players' names
