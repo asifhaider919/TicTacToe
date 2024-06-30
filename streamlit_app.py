@@ -1,42 +1,58 @@
-import streamlit as st
-import nltk
-from nltk.tokenize import word_tokenize
+import pandas as pd
+import datetime as dt
 
-# Download NLTK resources (run once)
-nltk.download('punkt')
+# Load your CSV data (adjust the path and delimiter if needed)
+csv_file = 'path_to_your_csv_file.csv'
+delimiter = ';'
+df = pd.read_csv(csv_file, delimiter=delimiter)
 
-# Function to process user input and generate response
-def process_message(message):
-    tokens = word_tokenize(message.lower())
+# Assume Period start time is in 'PERIOD_START_TIME' column
+df['PERIOD_START_TIME'] = pd.to_datetime(df['PERIOD_START_TIME'])
+
+# Filter and select metrics dynamically (adjust as per your UI logic)
+selected_metrics = ['Metric_A', 'Metric_B']  # Example: dynamically selected metrics
+
+# Calculate the delta for each selected metric
+for metric in selected_metrics:
+    # Calculate delta between last 'Period start time' and last week's same day 'Period start time'
+    last_period_time = df['PERIOD_START_TIME'].max()
+    last_week_period_time = last_period_time - dt.timedelta(days=7)
     
-    # Define keywords and corresponding responses
-    responses = {
-        ("hi", "hello", "hey"): "Hello! How can I assist you?",
-        ("how", "are", "you"): "I'm good, thank you! How about you?",
-        ("bye", "goodbye"): "Goodbye! Have a great day!"
-    }
+    # Filter data for the last 'Period start time' and last week's same day
+    last_period_data = df[df['PERIOD_START_TIME'] == last_period_time]
+    last_week_data = df[df['PERIOD_START_TIME'] == last_week_period_time]
+    
+    # Calculate delta for the selected metric
+    delta_column = f'{metric}_delta'
+    df[delta_column] = last_period_data[metric] - last_week_data[metric]
 
-    # Check for keywords in user input
-    for key_words, response in responses.items():
-        if any(word in tokens for word in key_words):
-            return response
+# Define your dynamically set threshold
+threshold = 10  # Example: dynamically set threshold
 
-    # Default response for unrecognized input
-    return "I'm sorry, I don't understand. Could you please rephrase?"
+# Filter items where delta of selected metrics is above threshold
+filtered_items = df[(df[selected_metrics].max(axis=1) > threshold)]
 
-# Main function to run the Streamlit app
-def main():
-    st.title("Dynamic Chatbot")
+# Display on map (example using Folium)
+import folium
 
-    # Input box for user to enter messages
-    user_input = st.text_input("Enter a message:")
-    if user_input:
-        # Display user input
-        st.text(f"You: {user_input}")
+# Create a base map centered around a location (adjust center coordinates as needed)
+m = folium.Map(location=[df['Lat'].mean(), df['Lon'].mean()], zoom_start=7)
 
-        # Process user input and get chatbot response
-        bot_response = process_message(user_input)
-        st.text(f"ChatBot: {bot_response}")
+# Iterate over filtered items to plot on the map
+for idx, row in filtered_items.iterrows():
+    popup_message = f"<b>Item:</b> {row['Item']}<br>" \
+                    f"<b>Lat:</b> {row['Lat']}<br>" \
+                    f"<b>Lon:</b> {row['Lon']}<br>" \
+                    f"<b>Metrics:</b><br>"
+                    
+    for metric in selected_metrics:
+        popup_message += f"{metric}: {row[metric]}<br>"
+        
+    folium.Marker(
+        location=[row['Lat'], row['Lon']],
+        popup=folium.Popup(popup_message, max_width=400),
+        icon=folium.Icon(color='blue', icon='info-sign')
+    ).add_to(m)
 
-if __name__ == "__main__":
-    main()
+# Display the map
+folium_static(m)
