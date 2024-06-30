@@ -16,21 +16,44 @@ def generate_question():
         answer = eval(f"{num1} {operator} {num2}")  # Evaluate the expression
     return question, answer
 
+# Function to initialize or retrieve session state
+def get_session():
+    if 'quiz_score' not in st.session_state:
+        st.session_state.quiz_score = 0
+    if 'question_index' not in st.session_state:
+        st.session_state.question_index = 0
+    if 'questions' not in st.session_state:
+        st.session_state.questions = []
+    return st.session_state
+
 # Function to run the quiz
 def run_quiz():
     st.title("Math Quiz for Year 8")
     st.markdown("Answer 10 questions to test your math skills!")
 
-    score = 0
-    for i in range(10):
-        question, correct_answer = generate_question()
-        user_answer = st.text_input(f"Question {i + 1}: {question}")
-        if user_answer.strip().isdigit():  # Check if the input is a number
-            user_answer = int(user_answer)
-            if user_answer == correct_answer:
-                score += 1
+    session_state = get_session()
 
-    st.success(f"You scored {score}/10!")
+    if len(session_state.questions) == 0:
+        # Generate all questions at the start
+        for _ in range(10):
+            question, correct_answer = generate_question()
+            session_state.questions.append((question, correct_answer))
+
+    question, correct_answer = session_state.questions[session_state.question_index]
+
+    user_answer = st.text_input(f"Question {session_state.question_index + 1}: {question}")
+
+    if user_answer.strip().isdigit():
+        user_answer = int(user_answer)
+        if user_answer == correct_answer:
+            session_state.quiz_score += 1
+
+    session_state.question_index += 1
+
+    if session_state.question_index < 10:
+        st.text(f"Score: {session_state.quiz_score}/10")
+    else:
+        st.success(f"Quiz complete! You scored {session_state.quiz_score}/10.")
 
 # Main function to run the app
 def main():
