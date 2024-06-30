@@ -13,17 +13,19 @@ def calculate_fan_points(lat, lon, beamwidth, sector_size):
     fan_points.append((lat, lon))  # Center of the fan
     
     num_points = 30  # Number of points to approximate the fan shape
-    angle_step = math.radians(beamwidth / num_points)
-
+    angle_step = math.radians(beamwidth / 2.0 / num_points)  # Half of the beamwidth
+    
+    # Calculate fan points in one direction
     for i in range(num_points + 1):
         angle = angle_step * i
         x = lat + fan_radius * math.cos(angle)
         y = lon + fan_radius * math.sin(angle)
         fan_points.append((x, y))
-
-    fan_points.append((lat, lon))  # Close the polygon
-
-    return fan_points
+    
+    # Mirror points to the other side
+    mirrored_points = [(lat, lon)] + [(2 * lat - x, 2 * lon - y) for x, y in reversed(fan_points)]
+    
+    return mirrored_points
 
 # Function to plot cells on the map
 def plot_cells_on_map(df):
