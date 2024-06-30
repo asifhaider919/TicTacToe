@@ -4,17 +4,6 @@ import folium
 from shapely.geometry import Point
 import math
 
-# Sample data (replace with your actual data loading code)
-data = pd.DataFrame({
-    'SITECODE': ['Site1', 'Site2'],
-    'SITENAME': ['Tower A', 'Tower B'],
-    'CELL': ['Cell1', 'Cell2'],
-    'LATITUDE': [51.5074, 52.3792],     # Sample latitudes
-    'LONGITUDE': [-0.1278, 4.8994],    # Sample longitudes
-    'BEAMWIDTH': [60, 90],              # Sample beamwidths in degrees
-    'SECTOR_SIZE': [100, 150]           # Sample sector sizes in meters
-})
-
 # Function to calculate fan shape points
 def calculate_fan_points(lat, lon, beamwidth, sector_size):
     fan_points = []
@@ -64,8 +53,20 @@ def main():
     st.title("Telecom Tower Cell Visualization")
     st.markdown("Visualizing telecom tower cells as fan-shaped polygons on a map.")
 
-    # Display the cells on the map
-    plot_cells_on_map(data)
+    # File upload and parsing
+    st.sidebar.header("Upload Telecom Tower Data")
+    uploaded_file = st.sidebar.file_uploader("Upload XLSX file", type=["xlsx"])
+
+    if uploaded_file is not None:
+        try:
+            # Read Excel file
+            data = pd.read_excel(uploaded_file)
+
+            # Display the cells on the map
+            plot_cells_on_map(data)
+
+        except Exception as e:
+            st.sidebar.error(f"Error: {e}")
 
 if __name__ == "__main__":
     main()
