@@ -34,19 +34,26 @@ def run_quiz():
                 st.success("Correct! 🎉")
                 st.markdown("""
                 <style>
-                .balloon-animation {
-                    position: absolute;
-                    animation: balloon 0.5s ease-out;
-                    transform: translate(-50%, 0);
-                    z-index: 1;
+                @keyframes float {
+                    0% {
+                        transform: translatey(0px);
+                    }
+                    50% {
+                        transform: translatey(-20px);
+                    }
+                    100% {
+                        transform: translatey(0px);
+                    }
                 }
-                @keyframes balloon {
-                    0% { transform: translateY(0); opacity: 1; }
-                    50% { opacity: 1; }
-                    100% { transform: translateY(-150px); opacity: 0; }
+                .balloon {
+                    position: relative;
+                    bottom: -150px;
+                    left: 50%;
+                    animation: float 3s ease-in-out infinite;
                 }
                 </style>
-                <div class="balloon-animation">
+
+                <div class="balloon">
                 <img src="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/271/balloon_1f388.png" width="50">
                 </div>
                 """, unsafe_allow_html=True)
