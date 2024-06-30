@@ -28,10 +28,10 @@ def get_session():
 
 # Function to run the quiz
 def run_quiz():
+    session_state = get_session()
+
     st.title("Math Quiz for Year 8")
     st.markdown("Answer 10 questions to test your math skills!")
-
-    session_state = get_session()
 
     if len(session_state.questions) == 0:
         # Generate all questions at the start
@@ -39,21 +39,26 @@ def run_quiz():
             question, correct_answer = generate_question()
             session_state.questions.append((question, correct_answer))
 
-    question, correct_answer = session_state.questions[session_state.question_index]
-
-    user_answer = st.text_input(f"Question {session_state.question_index + 1}: {question}")
-
-    if user_answer.strip().isdigit():
-        user_answer = int(user_answer)
-        if user_answer == correct_answer:
-            session_state.quiz_score += 1
-
-    session_state.question_index += 1
-
     if session_state.question_index < 10:
-        st.text(f"Score: {session_state.quiz_score}/10")
-    else:
+        question, correct_answer = session_state.questions[session_state.question_index]
+        user_answer = st.text_input(f"Question {session_state.question_index + 1}: {question}")
+
+        if user_answer.strip().isdigit():
+            user_answer = int(user_answer)
+            if user_answer == correct_answer:
+                session_state.quiz_score += 1
+
+        session_state.question_index += 1
+
+    if session_state.question_index >= 10:
         st.success(f"Quiz complete! You scored {session_state.quiz_score}/10.")
+        st.button("Restart Quiz", on_click=restart_quiz)
+
+def restart_quiz():
+    st.session_state.quiz_score = 0
+    st.session_state.question_index = 0
+    st.session_state.questions = []
+    run_quiz()
 
 # Main function to run the app
 def main():
