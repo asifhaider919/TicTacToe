@@ -33,12 +33,11 @@ def run_quiz():
             if user_answer == correct_answer:
                 st.success("Correct! 🎉")
                 st.balloons()
+                st.session_state.question_index += 1  # Increment question index only on correct answer
 
             else:
                 st.error("Wrong answer! 😔 Try again.")
                 st.warning("The correct answer was: " + str(correct_answer))
-
-        st.session_state.question_index += 1
 
     if st.session_state.question_index > 0:
         st.button("Next Question", on_click=run_quiz)
