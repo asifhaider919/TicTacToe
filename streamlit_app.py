@@ -1,41 +1,39 @@
+import streamlit as st
 import pandas as pd
-import plotly.express as px
-from datetime import datetime, timedelta
 
-# Step 1: Read CSV into Pandas DataFrame
-file_path = 'path_to_your_file.csv'  # Replace with your file path
-df = pd.read_csv(file_path, sep=';')
+# Title of the app
+st.title("Dynamic Metric Delta Analysis")
 
-# Step 2: Convert 'PERIOD_START_TIME' to datetime and set as index
-df['PERIOD_START_TIME'] = pd.to_datetime(df['PERIOD_START_TIME'])
-df.set_index('PERIOD_START_TIME', inplace=True)
+# File upload section
+uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
 
-# Step 3: Calculate delta between last 'PERIOD_START_TIME' and same time last week
-last_period = df.index.max()
-last_week = last_period - timedelta(days=7)
+if uploaded_file is not None:
+    try:
+        # Read the uploaded CSV file into a pandas DataFrame
+        df = pd.read_csv(uploaded_file, sep=';')
 
-df_last = df[df.index == last_period]
-df_last_week = df[df.index == last_week]
+        # Display some information about the uploaded file
+        st.write("### Uploaded File Summary")
+        st.write(f"File Name: {uploaded_file.name}")
+        st.write(f"Number of Rows: {df.shape[0]}")
+        st.write(f"Number of Columns: {df.shape[1]}")
 
-# Calculate delta for dynamically selected metrics (replace 'Metric1', 'Metric2' with actual metric names)
-selected_metrics = ['Metric1', 'Metric2']  # Replace with your selected metrics
-delta_threshold = 10  # Example threshold, replace with your dynamic threshold
+        # Example: Display the first few rows of the DataFrame
+        st.write("### Preview of Data")
+        st.write(df.head())
 
-delta_items = {}
-for metric in selected_metrics:
-    delta = df_last[metric] - df_last_week[metric]
-    delta_items[metric] = delta[delta > delta_threshold].index.tolist()
+        # Placeholder for metric selection and threshold input
+        st.sidebar.header("Select Metrics and Threshold")
+        selected_metric = st.sidebar.selectbox("Select Metric", df.columns[3:], index=0)  # Assuming metrics start from column 4
+        delta_threshold = st.sidebar.number_input("Set Delta Threshold", min_value=0.0, step=0.1, value=1.0)
 
-# Step 4: Prepare data for plotting
-plot_data = []
-for metric, items in delta_items.items():
-    for item in items:
-        plot_data.append({'PERIOD_START_TIME': item, 'Metric': metric, 'Value': df.loc[item, metric]})
+        # Placeholder for displaying results
+        st.header("Items Above Threshold")
+        st.write(f"Selected Metric: {selected_metric}")
+        st.write(f"Delta Threshold: {delta_threshold}")
 
-plot_df = pd.DataFrame(plot_data)
+        # Perform calculations and display items above threshold
+        # Your logic for calculating delta and filtering items goes here
 
-# Step 5: Plot using Plotly Express
-fig = px.line(plot_df, x='PERIOD_START_TIME', y='Value', color='Metric', title='Metrics Above Threshold')
-fig.update_xaxes(title='PERIOD_START_TIME')
-fig.update_yaxes(title='Metric Value')
-fig.show()
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
